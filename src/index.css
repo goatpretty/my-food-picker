@@ -1,0 +1,522 @@
+/* 1. 引入 Tailwind CSS 三大核心层 */
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+/* 2. 全局样式系统 */
+:root {
+  --bg-light: #f4f4f7;
+  --bg-dark: #000000;
+  
+  /* 卡片 - 浅色 */
+  --card-bg-light: rgba(255, 255, 255, 0.75);
+  --card-border-light: rgba(255, 255, 255, 0.9);
+  --text-main-light: #1d1d1f;
+  --text-sub-light: #86868b;
+  --accent-light: #0071e3;
+
+  /* 卡片 - 深色 (科幻) */
+  --card-bg-dark: rgba(10, 10, 12, 0.5); /* 更通透，为了看清粒子 */
+  --card-border-dark: rgba(255, 255, 255, 0.15);
+  --text-main-dark: #ffffff;
+  --text-sub-dark: #a1a1aa;
+  --accent-dark: #40c9ff;
+
+  /* 基础设置 */
+  font-family: "SF Pro Display", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  
+  /* 优化字体渲染 */
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* 动画曲线 */
+  --ease-out: cubic-bezier(0.2, 0.8, 0.2, 1);
+}
+
+/* 3. 全局重置与布局 */
+* { margin: 0; padding: 0; box-sizing: border-box; outline: none; -webkit-tap-highlight-color: transparent; }
+
+html,
+body,
+#root {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  padding: 0;
+  overflow: hidden;
+  overscroll-behavior: none;
+  user-select: none;
+  -webkit-user-select: none;
+}
+
+body {
+  font-family: var(--font-stack);
+  height: 100vh;
+  overflow: hidden;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-light);
+  transition: background-color 0.8s;
+  margin: 0;
+  padding: 0;
+}
+
+/* 确保main容器占据整个视口 */
+#root {
+  width: 100%;
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+}
+
+body[data-theme="dark"] {
+  background-color: var(--bg-dark);
+}
+
+/* 4. 渲染层容器 */
+#canvas-container {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  z-index: 0;
+  pointer-events: all;
+  display: block;
+}
+
+/* 2D 浅色 Canvas */
+#light-canvas {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 1;
+  transition: opacity 1s;
+}
+
+/* 3D WebGL Canvas (Three.js) */
+#three-canvas {
+  position: absolute;
+  top: 0; left: 0; width: 100%; height: 100%;
+  opacity: 0;
+  transition: opacity 1s;
+}
+
+/* 主题显隐逻辑 */
+#light-canvas {
+  opacity: 1;
+  pointer-events: auto;
+  transition: opacity 1s;
+}
+
+#three-canvas {
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 1s;
+}
+
+body[data-theme="light"] #light-canvas { opacity: 1; pointer-events: auto; }
+body[data-theme="light"] #three-canvas { opacity: 0; pointer-events: none; }
+body[data-theme="dark"] #light-canvas { opacity: 0; pointer-events: none; }
+body[data-theme="dark"] #three-canvas { opacity: 1; pointer-events: auto; }
+
+/* 5. UI 玻璃卡片 */
+.glass-panel {
+  position: relative;
+  z-index: 10;
+  width: calc(100% - 2rem) !important;
+  max-width: 500px !important;
+  min-width: 360px;
+  min-height: 360px;
+  background: var(--card-bg-light);
+  backdrop-filter: blur(30px) saturate(180%);
+  -webkit-backdrop-filter: blur(30px) saturate(180%);
+  border: 1px solid var(--card-border-light);
+  border-radius: 32px;
+  box-shadow: 0 20px 60px rgba(0, 0, 0, 0.1);
+  padding: 2.5rem 3rem;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  transition: transform 0.4s var(--ease-out), background 0.5s, border 0.5s, box-shadow 0.5s;
+  flex-shrink: 0;
+}
+
+/* 确保在所有屏幕尺寸下都能正确显示 */
+@media (min-width: 768px) {
+  .glass-panel {
+    width: 90% !important;
+  }
+}
+
+@media (min-width: 1200px) {
+  .glass-panel {
+    width: 1100px !important;
+  }
+}
+
+/* 宽屏适配 - 数据行横向排列 */
+@media (min-width: 768px) {
+  .content-area {
+    justify-content: center;
+  }
+  
+  #state-result {
+    gap: 1.5rem;
+  }
+  
+  .data-row {
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    padding: 1.2rem 1.5rem;
+  }
+  
+  .data-row .label {
+    margin-bottom: 0;
+  }
+  
+  .data-row .value {
+    font-size: 1.4rem;
+  }
+  
+  /* 高亮行保持纵向排列并居中 */
+  .data-row.highlight-row {
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+  }
+  
+  .data-row.highlight-row .label {
+    justify-content: center;
+  }
+  
+  .data-row.highlight-row .value {
+    font-size: 1.4rem;
+    margin-top: 0.5rem;
+  }
+}
+
+/* 深色模式下的卡片样式 */
+body[data-theme="dark"] .glass-panel {
+  background: var(--card-bg-dark);
+  border-color: var(--card-border-dark);
+  box-shadow: 0 30px 80px rgba(0, 0, 0, 0.6);
+  color: var(--text-main-dark);
+}
+
+/* 手机端适配 - 让卡片更小并调整背景透明度 */
+@media (max-width: 640px) {
+  .glass-panel {
+    min-height: 340px !important;
+    padding: 1.25rem 1.5rem !important;
+  }
+  
+  body[data-theme="dark"] .glass-panel {
+    background: rgba(10, 10, 12, 0.2) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+  
+  body[data-theme="light"] .glass-panel {
+    background: rgba(255, 255, 255, 0.5) !important;
+    backdrop-filter: blur(20px) saturate(180%);
+    -webkit-backdrop-filter: blur(20px) saturate(180%);
+  }
+}
+
+/* 悬停效果 (仅桌面) */
+@media (hover: hover) {
+  .glass-panel:hover { transform: translateY(-6px); }
+}
+
+/* 6. 文字与内容排版 */
+header {
+  margin-bottom: 1.5rem;
+  padding-bottom: 1rem;
+  border-bottom: 1px solid rgba(128,128,128, 0.15);
+}
+
+h1 {
+  font-size: 1.6rem;
+  font-weight: 800;
+  letter-spacing: -0.5px;
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  color: var(--text-main-light);
+}
+body[data-theme="dark"] h1 { color: var(--text-main-dark); }
+
+.status-dot {
+  width: 8px; height: 8px;
+  background: #30d158;
+  border-radius: 50%;
+  box-shadow: 0 0 10px #30d158;
+  animation: breathe 3s infinite;
+}
+
+.subtitle {
+  font-size: 0.75rem;
+  color: var(--text-sub-light);
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 1.5px;
+}
+body[data-theme="dark"] .subtitle { color: var(--text-sub-dark); }
+
+/* 7. 内容区域状态 */
+.content-area {
+  flex-grow: 1;
+  position: relative;
+  min-height: 240px;
+}
+
+/* 状态: 引导 */
+#state-intro {
+  text-align: center;
+  transition: all 0.4s var(--ease-out);
+  color: var(--text-main-light);
+}
+
+/* 确保 state-intro 内部元素正确居中 */
+#state-intro > div,
+#state-intro > p {
+  margin: 0 auto;
+  display: block;
+}
+
+/* 确保 state-intro 作为 flex 容器正确工作 */
+#state-intro.flex {
+  display: flex !important;
+  flex-direction: column !important;
+  align-items: center !important;
+  justify-content: center !important;
+  height: 100% !important;
+  width: 100% !important;
+  position: absolute !important;
+  top: 0 !important;
+  left: 0 !important;
+  right: 0 !important;
+  bottom: 0 !important;
+}
+body[data-theme="dark"] #state-intro { color: var(--text-main-dark); }
+
+#state-intro.hidden {
+  opacity: 0;
+  transform: translateY(-20px);
+  pointer-events: none;
+}
+
+.intro-icon {
+  width: 48px; height: 48px;
+  margin-bottom: 1rem;
+  stroke: currentColor;
+  opacity: 0.6;
+  animation: float 4s ease-in-out infinite;
+}
+
+/* 状态: 结果 */
+#state-result {
+  display: flex;
+  flex-direction: column;
+  gap: 0.8rem;
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
+  transform: translateY(10px);
+}
+
+#state-result.active {
+  opacity: 1;
+  pointer-events: auto;
+  transform: translateY(0);
+}
+
+.data-row {
+  display: flex;
+  flex-direction: column;
+  padding: 1rem 1.2rem;
+  background: rgba(128, 128, 128, 0.05);
+  border-radius: 16px;
+  border: 1px solid transparent;
+  transition: background 0.3s;
+}
+
+body[data-theme="dark"] .data-row { background: rgba(255, 255, 255, 0.05); }
+
+.label {
+  font-size: 0.65rem;
+  text-transform: uppercase;
+  letter-spacing: 1.2px;
+  color: var(--text-sub-light);
+  margin-bottom: 0.3rem;
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+body[data-theme="dark"] .label { color: var(--text-sub-dark); }
+
+.value {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: var(--text-main-light);
+}
+body[data-theme="dark"] .value { color: var(--text-main-dark); }
+
+/* 推荐品名高亮样式 */
+.data-row.highlight-row {
+  background: rgba(0, 113, 227, 0.08);
+  border-color: rgba(0, 113, 227, 0.2);
+  display: none; /* 默认隐藏 */
+}
+body[data-theme="dark"] .data-row.highlight-row {
+  background: rgba(64, 201, 255, 0.1);
+  border-color: rgba(64, 201, 255, 0.3);
+}
+
+.data-row.highlight-row.show {
+  display: flex;
+  animation: slideUpFade 0.6s var(--ease-out) forwards;
+}
+
+.data-row.highlight-row .value {
+  font-size: 1.4rem;
+  font-weight: 800;
+  background: linear-gradient(135deg, #0071e3, #42a5f5);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+body[data-theme="dark"] .data-row.highlight-row .value {
+  background: linear-gradient(135deg, #40c9ff, #e028ce);
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  text-shadow: 0 0 20px rgba(64, 201, 255, 0.4);
+}
+
+/* 8. 按钮 */
+.main-btn {
+  width: 100%;
+  height: 60px;
+  border-radius: 30px;
+  border: none;
+  background: var(--text-main-light);
+  color: var(--bg-light);
+  font-size: 1rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: all 0.3s var(--ease-out);
+  position: relative;
+  overflow: hidden;
+  letter-spacing: 1px;
+  margin-top: 1rem;
+  padding: 0 2.5rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+body[data-theme="dark"] .main-btn {
+  background: #ffffff;
+  color: #000000;
+  box-shadow: 0 0 20px rgba(255, 255, 255, 0.2);
+}
+
+.main-btn:hover { transform: scale(1.02); }
+.main-btn:active { transform: scale(0.97); }
+.main-btn:disabled { opacity: 0.6; cursor: not-allowed; }
+
+/* 9. 主题切换器 */
+.theme-toggle {
+  position: absolute;
+  top: 2rem; right: 2rem;
+  width: 44px; height: 44px;
+  border-radius: 50%;
+  background: rgba(128,128,128, 0.1);
+  backdrop-filter: blur(10px);
+  border: 1px solid rgba(255,255,255,0.2);
+  cursor: pointer;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 20;
+  color: var(--text-main-light);
+  transition: transform 0.3s, background 0.3s;
+}
+body[data-theme="dark"] .theme-toggle {
+  color: #fff;
+  background: rgba(255,255,255,0.1);
+}
+.theme-toggle:hover { transform: rotate(15deg) scale(1.1); }
+
+/* 遮罩动画 */
+.theme-overlay {
+  position: fixed;
+  top: 0; left: 0; width: 100vw; height: 100vh;
+  background: #000;
+  z-index: 9999;
+  pointer-events: none;
+  clip-path: circle(0% at 100% 0%);
+  transition: clip-path 1s cubic-bezier(0.6, 0, 0.2, 1);
+}
+
+/* 10. 动画定义 */
+@keyframes breathe { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.5; transform: scale(0.8); } }
+@keyframes float { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-6px); } }
+@keyframes slideUpFade { 
+  0% { opacity: 0; transform: translateY(20px); } 
+  100% { opacity: 1; transform: translateY(0); } 
+}
+
+/* 11. 图标样式 */
+.icon { width: 18px; height: 18px; stroke-width: 2; fill: none; stroke: currentColor; stroke-linecap: round; stroke-linejoin: round; }
+
+/* 12. 文本选择样式 */
+::selection {
+  background: rgba(0, 113, 227, 0.2);
+  color: inherit;
+}
+
+::-moz-selection {
+  background: rgba(0, 113, 227, 0.2);
+  color: inherit;
+}
+
+/* 13. 滚动条样式 */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: rgba(0, 0, 0, 0.05);
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb {
+  background: rgba(0, 0, 0, 0.2);
+  border-radius: 3px;
+  transition: background 0.3s ease;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: rgba(0, 0, 0, 0.3);
+}
+
+/* 深色模式下的滚动条样式 */
+body[data-theme="dark"] ::-webkit-scrollbar-track {
+  background: rgba(255, 255, 255, 0.05);
+}
+
+body[data-theme="dark"] ::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.2);
+}
+
+body[data-theme="dark"] ::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
+}
