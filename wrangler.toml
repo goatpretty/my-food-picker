@@ -2,15 +2,6 @@
 name = "my-food-picker"
 compatibility_date = "2025-12-03"
 
-# 静态网站配置
-[site]
-bucket = "./dist"
-
-# 构建配置
-[build]
-command = "npm run build"
-publish = "./dist"
-
-# 环境变量配置
-[env.production]
-# 可以在这里添加生产环境变量
+# 静态资产配置
+[assets]
+directory = "./dist"
