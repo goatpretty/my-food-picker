@@ -1,7 +1,0 @@
-# Cloudflare Pages 配置
-name = "my-food-picker"
-compatibility_date = "2025-12-03"
-
-# 静态资产配置
-[assets]
-directory = "./dist"
