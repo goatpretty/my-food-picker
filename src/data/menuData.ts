@@ -117,7 +117,7 @@ export const MENU_DATA: Shop[] = [
   {
     id: 12,
     name: '韩记麻辣香锅',
-    canteen: '三食堂',
+    canteen: '二食堂',
     dishes: []
   },
   {
